@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
-		"typeRoots": ["./node_modules/@types"],
+		"typeRoots": ["./node_modules/@types", "./typings"],
 		"moduleResolution": "node",
 		"sourceMap": true,
 		"strict": true,
@@ -12,6 +12,6 @@
 		"declaration": true,
 		"outDir": "lib"
 	},
-	"include": ["./src/**/*", "./typings/**/*"],
+	"include": ["./src/**/*"],
 	"exclude": ["./node_modules/**/*"]
 }
