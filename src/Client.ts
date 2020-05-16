@@ -6,7 +6,7 @@ import JSONStream from 'JSONStream';
 interface NinjacatClientOpts {
 	client_id: string;
 	client_secret: string;
-	agency_id: number;
+	agency_id: number | string;
 	agency_identifier: string;
 	report_secret: string;
 }
@@ -21,7 +21,6 @@ export default class NinjacatClient {
 	report_secret: string;
 	ready: Promise<any> | null = null;
 	report: {
-		retrieve: (request_id: RequestID) => Promise<any>;
 		post: (
 			template_id: Ninjacat.TemplateID,
 			advertiser_id: Ninjacat.AdvertiserID,
@@ -29,22 +28,8 @@ export default class NinjacatClient {
 				start_date: string;
 				end_date: string;
 			},
-		) => Promise<any>;
-		get: (
-			request_id: RequestID,
-		) => Promise<
-			| {
-					status: 0 | 1;
-					id: number;
-			  }
-			| {
-					success: true;
-					status: 2;
-					id: number;
-					data: Array<any>;
-					errors: Array<string>;
-			  }
-		>;
+		) => Promise<{ request_id: number }>;
+		get: (request_id: RequestID) => Promise<Ninjacat.ReportResponse>;
 	};
 	request: Request.RequestAPI<
 		Request.Request,
@@ -57,7 +42,7 @@ export default class NinjacatClient {
 	constructor(opts: NinjacatClientOpts) {
 		this.client_id = opts.client_id;
 		this.client_secret = opts.client_secret;
-		this.agency_id = opts.agency_id;
+		this.agency_id = Number(opts.agency_id);
 		this.agency_identifier = opts.agency_identifier;
 		this.report_secret = opts.report_secret;
 
@@ -72,15 +57,6 @@ export default class NinjacatClient {
 		});
 
 		this.report = {
-			retrieve: (request_id) =>
-				new Promise(async (resolve) => {
-					let res = { status: 0 };
-					while (res.status !== 2) {
-						console.log(res);
-						res = await this.report.get(request_id);
-					}
-					resolve(res);
-				}),
 			get: (request_id) => {
 				const path = ['open_api/report', this.agency_id, request_id].join('/');
 
