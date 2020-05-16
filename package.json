@@ -3,6 +3,7 @@
 	"description": "Reporting & Management API Client for https://www.ninjacat.io/",
 	"version": "0.1.3",
 	"main": "lib/Client.js",
+	"types": "lib/Client.d.ts",
 	"license": "MIT",
 	"dependencies": {
 		"JSONStream": "^1.3.5",
@@ -22,9 +23,8 @@
 		"typescript": "^3.8.3"
 	},
 	"scripts": {
-		"prepare": "gosub tsc",
+		"prepublish": "tsc",
 		"watch": "babel --watch src --out-dir lib --extensions '.ts,.tsx'",
-		"build": "babel src --out-dir lib --extensions '.ts,.tsx'",
-		"tsc": "tsc"
+		"build": "babel src --out-dir lib --extensions '.ts,.tsx'"
 	}
 }
