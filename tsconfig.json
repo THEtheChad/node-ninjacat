@@ -1,23 +1,17 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
-		"allowSyntheticDefaultImports": true,
-		"lib": ["dom", "es2017"],
 		"typeRoots": ["node_modules/@types", "@types"],
 		"moduleResolution": "node",
-		"noEmit": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"preserveConstEnums": true,
-		"removeComments": false,
-		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"target": "esnext",
 		"module": "commonjs",
 		"esModuleInterop": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"declaration": true,
+		"outDir": "lib"
 	},
-	"include": ["src/**/*.ts"],
-	"exclude": ["node_modules/**"]
+	"include": ["./src/**/*"],
+	"exclude": ["./node_modules/**/*"]
 }
