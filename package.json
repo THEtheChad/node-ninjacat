@@ -22,7 +22,7 @@
 		"typescript": "^3.8.3"
 	},
 	"scripts": {
-		"prepare": "gosub build",
+		"prepare": "gosub tsc",
 		"watch": "babel --watch src --out-dir lib --extensions '.ts,.tsx'",
 		"build": "babel src --out-dir lib --extensions '.ts,.tsx'",
 		"tsc": "tsc"
