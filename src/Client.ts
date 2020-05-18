@@ -78,7 +78,11 @@ export default class NinjacatClient {
 					Request.get(
 						`https://app.ninjacat.io/${path}`,
 						config,
-						function processReportGet(err, _res, body) {
+						function processReportGet(
+							err,
+							_res,
+							body: Ninjacat.ReportResponse,
+						) {
 							if (err) {
 								reject(err);
 								return;
