@@ -1,3 +1,4 @@
+/// <reference path="../global.d.ts" />
 import Request from 'request';
 import jwt from 'jsonwebtoken';
 // @ts-ignore

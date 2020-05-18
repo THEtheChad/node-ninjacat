@@ -1,4 +1,4 @@
-declare module Ninjacat {
+declare namespace Ninjacat {
 	interface Advertiser {
 		id: number;
 		name: string;
