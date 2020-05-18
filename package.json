@@ -1,7 +1,7 @@
 {
 	"name": "node-ninjacat",
 	"description": "Reporting & Management API Client for https://www.ninjacat.io/",
-	"version": "0.1.12",
+	"version": "0.1.13",
 	"main": "./lib/Client.js",
 	"types": "./lib/Client.d.ts",
 	"license": "MIT",
