@@ -109,6 +109,7 @@ export default class NinjacatClient {
 
 				const token = jwt.sign(payload, this.report_secret);
 				const config: any = {
+					json: true,
 					headers: {
 						Accept: 'application/json',
 						Authorization: `Bearer ${token}`,
