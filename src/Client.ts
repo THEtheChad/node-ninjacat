@@ -14,6 +14,14 @@ interface NinjacatClientOpts {
 
 type RequestID = number;
 
+function isError(
+	response: Ninjacat.ReportResponse | Ninjacat.ErrorResponse,
+): response is Ninjacat.ErrorResponse {
+	return (
+		response && (response as Ninjacat.ErrorResponse).error_message != undefined
+	);
+}
+
 export default class NinjacatClient {
 	client_id: string;
 	client_secret: string;
@@ -75,20 +83,33 @@ export default class NinjacatClient {
 					},
 				};
 
-				return new Promise((resolve, reject) => {
+				return new Promise<Ninjacat.ReportResponse>((resolve, reject) => {
 					Request.get(
 						`https://app.ninjacat.io/${path}`,
 						config,
 						function processReportGet(
 							err,
-							_res,
-							body: Ninjacat.ReportResponse,
+							res,
+							body: Ninjacat.ReportResponse | Ninjacat.ErrorResponse,
 						) {
 							if (err) {
 								reject(err);
 								return;
 							}
-							resolve(body);
+
+							const { statusCode } = res;
+							if (statusCode < 200 || statusCode > 301) {
+								if (!body) {
+									reject(new Error(`Recieved status code ${statusCode}`));
+									return;
+								}
+							}
+
+							if (isError(body)) {
+								reject(new Error(body.error_message));
+							} else {
+								resolve(body);
+							}
 						},
 					);
 				});
@@ -124,12 +145,25 @@ export default class NinjacatClient {
 					Request.post(
 						`https://app.ninjacat.io/${path}`,
 						config,
-						function processReportPost(err, _res, body) {
+						function processReportPost(err, res, body) {
 							if (err) {
 								reject(err);
 								return;
 							}
-							resolve(body);
+
+							const { statusCode } = res;
+							if (statusCode < 200 || statusCode > 301) {
+								if (!body) {
+									reject(new Error(`Recieved status code ${statusCode}`));
+									return;
+								}
+							}
+
+							if (isError(body)) {
+								reject(new Error(body.error_message));
+							} else {
+								resolve(body);
+							}
 						},
 					);
 				});
