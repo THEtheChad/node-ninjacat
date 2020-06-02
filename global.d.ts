@@ -74,6 +74,10 @@ declare namespace Ninjacat {
 		data: Array<Report<GenericReport>>;
 	}
 
+	interface ErrorResponse {
+		error_message: string;
+	}
+
 	type ReportResponse = ReportPending | ReportRunning | ReportReady;
 
 	interface CustomFieldValues {
