@@ -1,6 +1,25 @@
+declare module 'JSONStream';
+
 declare namespace Ninjacat {
-	interface Advertiser {
+	interface CustomField {
 		id: number;
+		name: string;
+	}
+
+	interface CustomFieldValue {
+		id: number;
+		custom_field_id: number;
+		name: string;
+		advertiserIds: number[];
+	}
+
+	type AgencyID = number;
+	type ReportID = number;
+	type TemplateID = number;
+	type AdvertiserID = number;
+
+	interface Advertiser {
+		id: AdvertiserID;
 		name: string;
 		phone?: string;
 		company: string;
@@ -25,67 +44,64 @@ declare namespace Ninjacat {
 		tools_keyword_filter: string;
 		use_phone_mappings: number;
 		custom_field?: string;
-		account_custom_field_values: Array<CustomFieldValues>;
+		account_custom_field_values: Array<CustomFieldValue>;
 	}
 
-	interface ReportPending {
-		status: 0;
-		id: ReportID;
-	}
+	type Response = { error: string } | { [key: string]: any };
 
-	interface ReportRunning {
-		status: 1;
-		id: ReportID;
-	}
+	namespace Report {
+		interface GReport {
+			[key: string]: number;
+		}
 
-	interface Report<T> {
-		success: boolean;
-		id: ReportID;
-		title: string;
-		dataRows: {
-			rows: Array<T>;
-			totals: Array<T>;
-			dataSampled: boolean;
+		type Generic = GReport & {
+			dimensions: object;
 		};
-		errors: {
-			[key: string]: {
-				type: string;
-				msg: string;
-				devMsg: string;
-				userMsg: string;
-				error: string;
-				info: Array<any>;
-				widgetArchiveId: number;
-				widgetId: number;
-				exceptionMessages: Array<any>;
+
+		interface Report<T> {
+			success: boolean;
+			id: ReportID;
+			title: string;
+			dataRows: {
+				rows: Array<T>;
+				totals: Array<T>;
+				dataSampled: boolean;
 			};
-		};
+			errors: {
+				[key: string]: {
+					type: string;
+					msg: string;
+					devMsg: string;
+					userMsg: string;
+					error: string;
+					info: Array<any>;
+					widgetArchiveId: number;
+					widgetId: number;
+					exceptionMessages: Array<any>;
+				};
+			};
+		}
+
+		interface Pending {
+			status: 0;
+			id: ReportID;
+		}
+
+		interface Running {
+			status: 1;
+			id: ReportID;
+		}
+
+		interface Ready {
+			status: 2;
+			id: ReportID;
+			data: Array<Report<Generic>>;
+		}
+
+		interface Error {
+			error_message: string;
+		}
+
+		type Response = Pending | Running | Ready | Error;
 	}
-
-	interface GReport {
-		[key: string]: number;
-	}
-
-	type GenericReport = GReport & { dimensions: object };
-
-	interface ReportReady {
-		status: 2;
-		id: ReportID;
-		data: Array<Report<GenericReport>>;
-	}
-
-	interface ErrorResponse {
-		error_message: string;
-	}
-
-	type ReportResponse = ReportPending | ReportRunning | ReportReady;
-
-	interface CustomFieldValues {
-		[key: string]: number;
-	}
-
-	type AgencyID = number;
-	type ReportID = number;
-	type TemplateID = number;
-	type AdvertiserID = number;
 }

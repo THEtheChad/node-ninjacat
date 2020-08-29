@@ -1,8 +1,10 @@
 /// <reference path="../global.d.ts" />
-import Request from 'request';
+import Debug from 'debug';
+import Request, { CoreOptions } from 'request';
 import jwt from 'jsonwebtoken';
-// @ts-ignore
 import JSONStream from 'JSONStream';
+
+const debug = Debug('ninjacat');
 
 interface NinjacatClientOpts {
 	client_id: string;
@@ -15,10 +17,10 @@ interface NinjacatClientOpts {
 type RequestID = number;
 
 function isError(
-	response: Ninjacat.ReportResponse | Ninjacat.ErrorResponse,
-): response is Ninjacat.ErrorResponse {
+	response: Ninjacat.Report.Response
+): response is Ninjacat.Report.Error {
 	return (
-		response && (response as Ninjacat.ErrorResponse).error_message != undefined
+		response && (response as Ninjacat.Report.Error).error_message != undefined
 	);
 }
 
@@ -36,9 +38,9 @@ export default class NinjacatClient {
 			opts?: {
 				start_date: string;
 				end_date: string;
-			},
+			}
 		) => Promise<{ request_id: number }>;
-		get: (request_id: RequestID) => Promise<Ninjacat.ReportResponse>;
+		get: (request_id: RequestID) => Promise<Ninjacat.Report.Response>;
 	};
 	request: Request.RequestAPI<
 		Request.Request,
@@ -61,8 +63,8 @@ export default class NinjacatClient {
 			headers: {
 				'Client-Id': this.client_id,
 				Accept: 'application/json',
-				'x-api-key': this.agency_identifier,
-			},
+				'x-api-key': this.agency_identifier
+			}
 		});
 
 		this.report = {
@@ -71,7 +73,7 @@ export default class NinjacatClient {
 
 				const payload = {
 					agency_id: this.agency_id,
-					request_id,
+					request_id
 				};
 
 				const token = jwt.sign(payload, this.report_secret);
@@ -79,18 +81,18 @@ export default class NinjacatClient {
 					json: true,
 					headers: {
 						Accept: 'application/json',
-						Authorization: `Bearer ${token}`,
-					},
+						Authorization: `Bearer ${token}`
+					}
 				};
 
-				return new Promise<Ninjacat.ReportResponse>((resolve, reject) => {
+				return new Promise<Ninjacat.Report.Response>((resolve, reject) => {
 					Request.get(
 						`https://app.ninjacat.io/${path}`,
 						config,
 						function processReportGet(
 							err,
 							res,
-							body: Ninjacat.ReportResponse | Ninjacat.ErrorResponse,
+							body: Ninjacat.Report.Response
 						) {
 							if (err) {
 								reject(err);
@@ -110,7 +112,7 @@ export default class NinjacatClient {
 							} else {
 								resolve(body);
 							}
-						},
+						}
 					);
 				});
 			},
@@ -119,13 +121,13 @@ export default class NinjacatClient {
 					'open_api/report',
 					this.agency_id,
 					template_id,
-					advertiser_id,
+					advertiser_id
 				].join('/');
 
 				const payload = {
 					agency_id: this.agency_id,
 					template_id,
-					advertiser_id,
+					advertiser_id
 				};
 
 				const token = jwt.sign(payload, this.report_secret);
@@ -133,8 +135,8 @@ export default class NinjacatClient {
 					json: true,
 					headers: {
 						Accept: 'application/json',
-						Authorization: `Bearer ${token}`,
-					},
+						Authorization: `Bearer ${token}`
+					}
 				};
 
 				if (opts) {
@@ -164,17 +166,17 @@ export default class NinjacatClient {
 							} else {
 								resolve(body);
 							}
-						},
+						}
 					);
 				});
-			},
+			}
 		};
 	}
 
 	auth() {
 		if (!this.ready) {
 			const basic = Buffer.from(
-				this.client_id + ':' + this.client_secret,
+				this.client_id + ':' + this.client_secret
 			).toString('base64');
 
 			this.ready = new Promise((resolve, reject) => {
@@ -184,8 +186,8 @@ export default class NinjacatClient {
 						headers: {
 							'Cache-Control': 'no-cache',
 							'Content-Type': 'application/x-www-form-urlencoded',
-							Authorization: `Basic ${basic}`,
-						},
+							Authorization: `Basic ${basic}`
+						}
 					},
 					(err, _res, body) => {
 						if (err) {
@@ -196,16 +198,78 @@ export default class NinjacatClient {
 						this.request = this.request.defaults({
 							headers: {
 								Authorization: `Bearer ${body.access_token}`,
-								'Content-Type': 'application/json',
-							},
+								'Content-Type': 'application/json'
+							}
 						});
 						resolve();
-					},
+					}
 				);
 			});
 		}
 
 		return this.ready;
+	}
+
+	post(endpoint: string, options: CoreOptions = {}): Ninjacat.Response {
+		debug(`POST => ${endpoint}`);
+
+		let response: Ninjacat.Response | undefined;
+		return new Promise<Ninjacat.Response>((resolve, reject) => {
+			this.request
+				.post(endpoint, options)
+				.on('error', reject)
+				.pipe(JSONStream.parse())
+				.once('data', (res: Ninjacat.Response) => {
+					if (res.error) {
+						reject(new Error(res.error));
+					} else {
+						response = res;
+					}
+				})
+				.on('end', () => resolve(response));
+		});
+	}
+
+	get(endpoint: string, options: CoreOptions = {}) {
+		debug(`GET => ${endpoint}`);
+
+		let response: Ninjacat.Response | undefined;
+		return new Promise<Ninjacat.Response>((resolve, reject) => {
+			this.request
+				.get(endpoint, options)
+				.on('error', reject)
+				.pipe(JSONStream.parse())
+				.once('data', (res: Ninjacat.Response) => {
+					if (res.error) {
+						reject(new Error(res.error));
+					} else {
+						response = res;
+					}
+				})
+				.on('end', () => resolve(response));
+		});
+	}
+
+	del(endpoint: string, options: CoreOptions = {}) {
+		debug(`DEL => ${endpoint}`);
+
+		let response: Ninjacat.Response | undefined;
+		return new Promise<Ninjacat.Response>((resolve, reject) => {
+			this.request
+				.del(endpoint, options)
+				.on('error', reject)
+				.pipe(JSONStream.parse())
+				.once('data', (res: Ninjacat.Response) => {
+					if (res.error) {
+						reject(new Error(res.error));
+					} else {
+						response = res;
+					}
+				})
+				.on('end', () => {
+					resolve(response);
+				});
+		});
 	}
 
 	async advertisers(): Promise<Array<Ninjacat.Advertiser>> {
